@@ -35,18 +35,11 @@ export const variants = {
       m.castShadow = true;
       m.receiveShadow = true;
       group.add(m);
-      geo.computeBoundingBox();
-      return { m, i, cur: 0, right: geo.boundingBox.max.x };
+      return { m, i, cur: 0 };
     });
-    // The arrow is the piece that reaches furthest right; it points up and to the right.
-    const arrow = parts.reduce((a, b) => (b.right > a.right ? b : a));
-    const dir = { x: 0.62, y: 0.78 };
     group.scale.setScalar(2.0);
     return {
       update(t, p, s, reduce) {
-        // Arrow push: every 4 s the arrow nudges forward along its direction, then settles.
-        const u = (t % 4) / 4;
-        const push = reduce ? 0 : u < 0.12 ? ease(u / 0.12) : u < 0.45 ? 1 - ease((u - 0.12) / 0.33) : 0;
         // Each part animates on its own: a gentle staggered float at rest,
         // and on scroll the parts step apart in depth one after another.
         parts.forEach((P) => {
@@ -55,8 +48,7 @@ export const variants = {
           const want = Math.min(1, Math.max(0, sc * 1.4 - P.i * 0.15));
           P.cur += (want - P.cur) * (reduce ? 1 : 0.08);
           const k = P.cur;
-          const a = P === arrow ? push * 0.09 : 0;
-          P.m.position.set(dir.x * a, idle + dir.y * a + (P.i - 1.5) * 0.05 * k, (P.i - 1.5) * 0.55 * k);
+          P.m.position.set(0, idle + (P.i - 1.5) * 0.05 * k, (P.i - 1.5) * 0.55 * k);
           P.m.rotation.set((P.i % 2 ? -1 : 1) * 0.12 * k, (P.i - 1.5) * 0.18 * k, 0);
         });
         group.rotation.y = 0.5 + p.x * 0.4 + (reduce ? 0 : Math.sin(t * 0.3) * 0.25) + s * 0.6;
