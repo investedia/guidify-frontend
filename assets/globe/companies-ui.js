@@ -4,7 +4,7 @@
 //   guidify:filter  { sector }       the sector filter changed
 //   guidify:close                    the detail view closed
 
-const SECTORS = ['Software & AI', 'Finance & Fintech', 'Commerce', 'Media & Entertainment', 'Infrastructure & Technology', 'Other'];
+const SECTORS = ['Software & AI', 'Finance & Fintech', 'Commerce', 'Media & Entertainment', 'Infrastructure & Technology', 'Consumer & Industry'];
 const SHORT = { 'Infrastructure & Technology': 'Infrastructure' };
 const phone = matchMedia('(max-width: 900px)');
 const $ = (id) => document.getElementById(id);

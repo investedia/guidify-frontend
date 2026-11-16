@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Guidify — Digital products for entrepreneurs</title>
+<meta name="description" content="Guidify builds independent digital products for investors, traders, entrepreneurs, creators and learners.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icons/favicon-32.png">
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--fg:#ededed;--mute:#8f8f8f;--line:rgba(255,255,255,.09);--line2:rgba(255,255,255,.16)}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--fg);font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1200px;margin:0 auto;padding:0 32px}
+
+nav{position:sticky;top:0;z-index:10;backdrop-filter:blur(12px);background:rgba(10,10,10,.72);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:17px;letter-spacing:-.01em}
+.brand img{width:22px;height:22px}
+.links{display:flex;gap:32px;font-size:14px;color:var(--mute)}
+.links a:hover{color:var(--fg)}
+.btn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:8px;font-size:14px;font-weight:500;transition:background .2s,border-color .2s}
+.btn-w{background:#ededed;color:#0a0a0a}.btn-w:hover{background:#fff}
+.btn-g{border:1px solid var(--line2);color:var(--fg)}.btn-g:hover{border-color:rgba(255,255,255,.35)}
+
+.hero{position:relative;text-align:center;padding:96px 0 0;overflow:hidden;isolation:isolate}
+.hero::before{content:"";position:absolute;inset:0;z-index:-1;
+ background:linear-gradient(var(--line) 1px,transparent 1px) 0 0/64px 64px,linear-gradient(90deg,var(--line) 1px,transparent 1px) 0 0/64px 64px;
+ -webkit-mask:radial-gradient(60% 50% at 50% 35%,#000,transparent);mask:radial-gradient(60% 50% at 50% 35%,#000,transparent);opacity:.6}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--mute);border:1px solid var(--line2);border-radius:999px;padding:5px 12px 5px 10px;margin-bottom:28px}
+.eyebrow i{width:6px;height:6px;border-radius:50%;background:#ededed}
+h1{font-size:clamp(40px,6.4vw,76px);line-height:1.02;letter-spacing:-.045em;font-weight:600}
+h1 span{color:#7a7a7a}
+.lead{margin:22px auto 32px;max-width:560px;font-size:18px;line-height:1.55;color:var(--mute)}
+.ctas{display:flex;gap:12px;justify-content:center}
+
+/* 3D stage */
+.stage{position:relative;height:420px;margin-top:48px;perspective:1400px}
+.row{position:absolute;left:50%;top:70px;transform-style:preserve-3d;transform:translateX(-50%) rotateX(14deg);display:flex;align-items:center;gap:120px;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.tile{position:relative;width:150px;height:150px;border-radius:34px;flex:none;
+ background:linear-gradient(180deg,#232323,#0d0d0d);
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 0 0 1px rgba(255,255,255,.07),inset 0 -12px 24px rgba(0,0,0,.5),
+  0 2px 0 #1a1a1a,0 6px 0 #0c0c0c,0 40px 50px -14px rgba(0,0,0,.95);
+ display:grid;place-items:center;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.tile img{width:62%;height:62%;object-fit:contain}
+.tile.drp img{width:86%;height:86%}
+.tile.inv{background:#000}
+.tile.inv img{width:100%;height:100%;border-radius:34px}
+.tile.main{width:210px;height:210px;border-radius:46px;transform:translateY(-24px);background:linear-gradient(180deg,#2b2b2b,#101010)}
+.tile.main img{width:58%;height:58%}
+a.tile:hover{transform:translateY(-12px)}
+.lbl{position:absolute;top:calc(100% + 34px);left:50%;transform:translateX(-50%);white-space:nowrap;font-size:13px;color:var(--mute)}
+.floor{position:absolute;left:50%;top:260px;width:820px;height:160px;transform:translateX(-50%);border-radius:50%;
+ background:radial-gradient(closest-side,rgba(255,255,255,.08),transparent)}
+.links3d{position:absolute;left:50%;top:173px;width:540px;height:1px;transform:translateX(-50%);
+ background:linear-gradient(90deg,transparent,rgba(255,255,255,.3) 25%,transparent 38% 62%,rgba(255,255,255,.3) 75%,transparent)}
+
+section{padding:110px 0}
+.sec-h{display:flex;justify-content:space-between;align-items:flex-end;gap:24px;margin-bottom:40px}
+.sec-h h2{font-size:clamp(30px,3.6vw,44px);letter-spacing:-.035em;font-weight:600;line-height:1.08}
+.sec-h p{color:var(--mute);max-width:380px;line-height:1.55}
+.prods{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.prod{border:1px solid var(--line);border-radius:16px;background:#0e0e0e;overflow:hidden;transition:border-color .25s}
+.prod:hover{border-color:rgba(255,255,255,.22)}
+.prod-top{display:flex;align-items:center;gap:14px;padding:24px 24px 0}
+.mk{width:44px;height:44px;border-radius:11px;overflow:hidden;flex:none;background:#000;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1)}
+.mk img{width:100%;height:100%;display:block;object-fit:contain}
+.prod h3{font-size:20px;font-weight:600;letter-spacing:-.02em}
+.prod small{font-size:13px;color:var(--mute)}
+.badge{margin-left:auto;font-size:12px;border:1px solid var(--line2);border-radius:999px;padding:4px 10px;color:#cfcfcf;display:flex;gap:6px;align-items:center;white-space:nowrap}
+.badge i{width:6px;height:6px;border-radius:50%;background:#ededed}
+.badge.dev i{background:transparent;border:1px solid #9a9a9a}
+.prod p{padding:16px 24px 0;color:var(--mute);line-height:1.55;font-size:15px}
+.frame{margin:24px 24px 0;border:1px solid var(--line2);border-bottom:0;border-radius:10px 10px 0 0;overflow:hidden;background:#111;transform:translateY(6px);transition:transform .4s cubic-bezier(.2,.7,.2,1)}
+.prod:hover .frame{transform:translateY(0)}
+.bar{display:flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-bottom:1px solid var(--line);background:#141414}
+.bar i{width:8px;height:8px;border-radius:50%;background:#2c2c2c}
+.bar span{margin-left:10px;font-size:11px;color:#777;background:#0c0c0c;border-radius:5px;padding:3px 10px}
+.frame img{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top}
+
+.aud{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.aud div{padding:28px 24px;border-left:1px solid var(--line)}
+.aud div:first-child{border-left:0}
+.aud h4{font-size:15px;font-weight:600;margin-bottom:6px}
+.aud p{font-size:14px;color:var(--mute);line-height:1.5}
+footer{padding:40px 0;color:var(--mute);font-size:13px}
+footer .wrap{display:flex;justify-content:space-between;gap:16px}
+
+#hub{position:absolute;inset:0;width:100%;height:100%;opacity:0;transition:opacity 1s;display:block}
+.stage.is-3d #hub{opacity:1}
+.stage.is-3d .floor,.stage.is-3d .links3d{display:none}
+.stage.is-3d .row{opacity:0;pointer-events:none}
+.stage.is-3d .row a:focus-visible{opacity:1}
+.tags{display:none}
+.stage.is-3d .tags{display:block}
+.tags span{position:absolute;left:0;top:0;font-size:13px;color:var(--mute);white-space:nowrap;transform:translate(-50%,0);pointer-events:none;will-change:transform}
+.stage.is-3d.hov{cursor:pointer}
+.stage{height:460px}
+@media (max-width:900px){
+ .links{display:none}
+ .row{gap:44px}
+ .tile{width:96px;height:96px;border-radius:24px}.tile.inv img{border-radius:24px}
+ .tile.main{width:136px;height:136px;border-radius:32px}
+ .stage{height:340px}.floor{width:440px;top:170px}.links3d{width:330px;top:118px}
+ .prods,.aud{grid-template-columns:1fr}
+ .aud div{border-left:0;border-top:1px solid var(--line)}.aud div:first-child{border-top:0}
+ .sec-h{flex-direction:column;align-items:flex-start}
+}
+@media (max-width:480px){
+ .wrap{padding:0 16px}.nav-cta{display:none}
+ .row{gap:20px}.tile{width:78px;height:78px;border-radius:20px}.tile.inv img{border-radius:20px}
+ .tile.main{width:112px;height:112px;border-radius:27px}
+ .links3d{width:260px;top:110px}
+ .ctas{flex-direction:column;align-items:center}
+ .prod-top{flex-wrap:wrap}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<nav><div class="wrap">
+ <a class="brand" href="/"><img src="assets/guidify-g.png" alt="">Guidify</a>
+ <div class="links"><a href="#products">Products</a><a href="#for">Who it's for</a><a href="index.html#story">Company</a></div>
+ <a class="btn btn-w nav-cta" href="#products">Explore products</a>
+</div></nav>
+
+<header class="hero">
+ <div class="wrap">
+  <div class="eyebrow"><i></i>Building since 2024</div>
+  <h1>Digital products<br><span>for entrepreneurs.</span></h1>
+  <p class="lead">Guidify builds independent digital products for investors, traders, entrepreneurs, creators and learners.</p>
+  <div class="ctas"><a class="btn btn-w" href="#products">Explore products</a><a class="btn btn-g" href="mailto:contact@guidify.eu">Contact us</a></div>
+ </div>
+ <div class="stage" id="stage" aria-label="Guidify and its products">
+  <canvas id="hub" aria-hidden="true"></canvas>
+  <div class="tags" aria-hidden="true"><span>Investedia</span><span>Guidify</span><span>Droplates</span></div>
+  <div class="floor" aria-hidden="true"></div>
+  <div class="links3d" aria-hidden="true"></div>
+  <div class="row" id="row">
+   <a class="tile inv" href="https://investedia.com" target="_blank" rel="noopener" aria-label="Investedia"><img src="assets/investedia-mark.svg" alt=""><span class="lbl">Investedia</span></a>
+   <div class="tile main"><img src="assets/guidify-g.png" alt="Guidify"><span class="lbl">Guidify</span></div>
+   <a class="tile drp" href="https://droplates.com" target="_blank" rel="noopener" aria-label="Droplates"><img src="assets/droplates-mark.svg" alt=""><span class="lbl">Droplates</span></a>
+  </div>
+ </div>
+</header>
+
+<section id="products"><div class="wrap">
+ <div class="sec-h"><h2>Two products.<br>One standard.</h2><p>Each Guidify product is built and run on its own, with its own focus and audience.</p></div>
+ <div class="prods">
+  <a class="prod" href="https://investedia.com" target="_blank" rel="noopener">
+   <div class="prod-top"><div class="mk"><img src="assets/investedia-mark.svg" alt=""></div><div><h3>Investedia</h3><small>investedia.com</small></div><span class="badge"><i></i>Live</span></div>
+   <p>Financial news, market data and investment intelligence, with education for people learning to invest.</p>
+   <div class="frame"><div class="bar"><i></i><i></i><i></i><span>investedia.com</span></div><img src="assets/img/investedia-home.png" alt="Investedia homepage" loading="lazy"></div>
+  </a>
+  <a class="prod" href="https://droplates.com" target="_blank" rel="noopener">
+   <div class="prod-top"><div class="mk"><img src="assets/droplates-mark.svg" alt=""></div><div><h3>Droplates</h3><small>droplates.com</small></div><span class="badge dev"><i></i>In development</span></div>
+   <p>Website templates and creation tools that help entrepreneurs and creators build and launch online.</p>
+   <div class="frame"><div class="bar"><i></i><i></i><i></i><span>droplates.com</span></div><img src="assets/img/droplates-home.png" alt="Droplates homepage" loading="lazy"></div>
+  </a>
+ </div>
+</div></section>
+
+<section id="for" style="padding-top:0"><div class="wrap">
+ <div class="aud">
+  <div><h4>Entrepreneurs</h4><p>Tools to turn an idea into a working business online.</p></div>
+  <div><h4>Investors &amp; traders</h4><p>Clear news and data to follow markets and sectors.</p></div>
+  <div><h4>Creators</h4><p>Templates that get a site live without starting from zero.</p></div>
+  <div><h4>Learners</h4><p>Plain-language education on how markets work.</p></div>
+ </div>
+</div></section>
+
+<footer><div class="wrap"><span>© 2026 Guidify</span><a href="mailto:contact@guidify.eu">contact@guidify.eu</a></div></footer>
+
+<script>
+(()=>{const row=document.getElementById('row');if(matchMedia('(prefers-reduced-motion: reduce)').matches||matchMedia('(hover:none)').matches)return;
+addEventListener('pointermove',e=>{const x=e.clientX/innerWidth-.5,y=e.clientY/innerHeight-.5;
+row.style.transform=`translateX(-50%) rotateX(${14-y*6}deg) rotateY(${x*10}deg)`},{passive:true})})();
+</script>
+<script type="module" src="assets/hub3d.js"></script>
+</body>
+</html>

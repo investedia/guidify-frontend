@@ -40,10 +40,10 @@ async function start() {
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enablePan = false; controls.enableDamping = true;
-  controls.minDistance = 2.4; controls.maxDistance = 4.8;
+  controls.minDistance = 1.9; controls.maxDistance = 4.8;
   // Phones pinch with OrbitControls; desktop zoom is our own smooth glide (below).
   controls.enableZoom = touch; controls.zoomSpeed = 0.8;
-  controls.autoRotate = !reduce; controls.autoRotateSpeed = 0.35;
+  controls.autoRotate = !reduce; controls.autoRotateSpeed = 0.6;
   if (touch) {
     // One finger scrolls the page; two fingers turn and zoom the globe.
     controls.touches = { ONE: -1, TWO: THREE.TOUCH.DOLLY_ROTATE };
@@ -56,20 +56,39 @@ async function start() {
     zoomTarget = THREE.MathUtils.clamp(from * f, controls.minDistance, controls.maxDistance);
     if (reduce) { camera.position.setLength(zoomTarget); zoomTarget = null; controls.update(); }
   }
-  // A plain mouse wheel keeps scrolling the page; trackpad pinch or Ctrl + scroll zooms smoothly.
+  // Scrolling over the globe zooms it. At the zoom limits the wheel goes back to scrolling the page,
+  // so nobody gets stuck inside the hero.
   stage.addEventListener('wheel', (e) => {
-    if (!e.ctrlKey) { e.stopPropagation(); return; }
-    if (touch) return;
-    e.preventDefault(); e.stopPropagation();
-    zoomBy(Math.exp(THREE.MathUtils.clamp(e.deltaY, -60, 60) * 0.006));
+    e.stopPropagation();
+    if (touch && !e.ctrlKey) return;
+    const d = zoomTarget ?? camera.position.length();
+    const out = e.deltaY > 0;
+    if (!e.ctrlKey && ((out && d >= controls.maxDistance - 0.01) || (!out && d <= controls.minDistance + 0.01))) return;
+    e.preventDefault();
+    zoomBy(Math.exp(THREE.MathUtils.clamp(e.deltaY, -80, 80) * (e.ctrlKey ? 0.01 : 0.0035)));
+    pauseSpin();
   }, { capture: true, passive: false });
-  // Double-click zooms in one step (desktop).
-  if (!touch) renderer.domElement.addEventListener('dblclick', (e) => { e.preventDefault(); zoomBy(0.8); });
-  if (zoomUI && !touch) {
+  // Double-click (desktop) or double-tap (phone) zooms in one step.
+  renderer.domElement.addEventListener('dblclick', (e) => { e.preventDefault(); zoomBy(0.72); pauseSpin(); });
+  if (touch) {
+    let lastTap = 0;
+    renderer.domElement.addEventListener('touchend', (e) => {
+      if (e.changedTouches.length !== 1 || e.touches.length) return;
+      const now = performance.now();
+      if (now - lastTap < 300) { zoomBy(0.72); pauseSpin(); lastTap = 0; } else lastTap = now;
+    }, { passive: false });
+  }
+  // Spin resumes a few seconds after the visitor stops touching the globe.
+  let spinTimer = 0;
+  function pauseSpin() {
+    controls.autoRotate = false; clearTimeout(spinTimer);
+    if (!reduce) spinTimer = setTimeout(() => { if (!selected) controls.autoRotate = true; }, 5000);
+  }
+  if (zoomUI) {
     zoomUI.hidden = false;
     zoomUI.addEventListener('click', (e) => {
       const b = e.target.closest('button[data-zoom]');
-      if (b) zoomBy(b.dataset.zoom === 'in' ? 0.82 : 1 / 0.82);
+      if (b) { zoomBy(b.dataset.zoom === 'in' ? 0.72 : 1 / 0.72); pauseSpin(); }
     });
   }
 
@@ -150,21 +169,26 @@ async function start() {
     if (!m) return;
     selected = id;
     controls.autoRotate = false;
+    zoomTarget = null;
     const dist = camera.position.length();
+    const end = 2.6;
     const from = camera.position.clone().normalize();
     const to = m.pos.clone().normalize();
     // Desktop: stop with the company to the right of centre, next to its card, not behind the headline.
     if (!matchMedia('(max-width: 900px)').matches) {
-      to.applyAxisAngle(new THREE.Vector3(0, 1, 0), FOCUS_OFFSET.x);
+      const k = (end - 1) / 2.7; // same spot on screen at a closer zoom needs a smaller angle
+      to.applyAxisAngle(new THREE.Vector3(0, 1, 0), FOCUS_OFFSET.x * k * 0.72);
       const side = new THREE.Vector3().crossVectors(to, new THREE.Vector3(0, 1, 0)).normalize();
-      if (side.lengthSq() > 0) to.applyAxisAngle(side, FOCUS_OFFSET.y);
+      if (side.lengthSq() > 0) to.applyAxisAngle(side, FOCUS_OFFSET.y * k * 0.8);
     }
-    if (reduce) { camera.position.copy(to.multiplyScalar(dist)); controls.update(); return; }
-    anim = { from, q: new THREE.Quaternion().setFromUnitVectors(from, to), dist, t0: performance.now(), dur: 900 };
+    if (reduce) { camera.position.copy(to.multiplyScalar(end)); controls.update(); return; }
+    const arc = from.angleTo(to);
+    anim = { from, q: new THREE.Quaternion().setFromUnitVectors(from, to), dist, end, lift: Math.min(1.2, arc * 0.6),
+      t0: performance.now(), dur: 1100 + arc * 400 };
   }
-  controls.addEventListener('start', () => { anim = null; });
+  controls.addEventListener('start', () => { anim = null; pauseSpin(); });
   document.addEventListener('guidify:select', (e) => focus(e.detail.id));
-  document.addEventListener('guidify:close', () => { selected = null; controls.autoRotate = !reduce; });
+  document.addEventListener('guidify:close', () => { selected = null; controls.autoRotate = !reduce; zoomBy(3.4 / camera.position.length()); });
   document.addEventListener('guidify:filter', (e) => {
     const s = e.detail.sector;
     for (const m of byId.values()) {
@@ -174,13 +198,23 @@ async function start() {
   });
 
   // ---------- Pointer: hover tooltip and tap / click to pick ----------
-  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(), tmpP = new THREE.Vector3();
   function pick(x, y) {
     const r = renderer.domElement.getBoundingClientRect();
     mouse.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
     ray.setFromCamera(mouse, camera);
-    const hit = ray.intersectObjects(markers.filter((m) => m.visible))[0];
-    return hit ? hit.object.userData : null;
+    const vis = markers.filter((m) => m.visible);
+    const hit = ray.intersectObjects(vis)[0];
+    if (hit || !touch) return hit ? hit.object.userData : null;
+    // Fingers are bigger than logos: on touch, take the nearest logo within 24px.
+    let best = null, bestD = 24 * 24;
+    for (const m of vis) {
+      tmpP.copy(m.position).project(camera);
+      const dx = (tmpP.x + 1) / 2 * r.width + r.left - x, dy = (1 - tmpP.y) / 2 * r.height + r.top - y;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = m; }
+    }
+    return best ? best.userData : null;
   }
   renderer.domElement.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch') return;
@@ -219,7 +253,9 @@ async function start() {
       const t = Math.min(1, (now - anim.t0) / anim.dur);
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       qTmp.slerpQuaternions(qId, anim.q, e);
-      camera.position.copy(anim.from).applyQuaternion(qTmp).multiplyScalar(camera.position.length());
+      // pull back while travelling, then dive in on the country
+      const d = anim.dist + (anim.end - anim.dist) * e + Math.sin(Math.PI * t) * anim.lift;
+      camera.position.copy(anim.from).applyQuaternion(qTmp).multiplyScalar(d);
       if (t >= 1) anim = null;
     }
     if (zoomTarget !== null) {
@@ -230,12 +266,13 @@ async function start() {
     }
     controls.update();
     camDir.copy(camera.position).normalize();
+    const zs = Math.min(1, 0.45 + (camera.position.length() - 1) * 0.2);
     for (const m of markers) {
       const entry = m.userData;
       const d = tmp.copy(m.position).normalize().dot(camDir);
       m.visible = !entry.filtered && d > 0.12;
       const base = entry.c.id === selected ? 0.13 : entry.c.id === hovered ? 0.11 : 0.09;
-      m.scale.setScalar(Math.max(0, base * Math.min(1, (d - 0.12) * 4 + 0.4)));
+      m.scale.setScalar(Math.max(0, base * zs * Math.min(1, (d - 0.12) * 4 + 0.4)));
     }
     renderer.render(scene, camera);
     if (firstFrame) { firstFrame = false; stage.classList.add('is-ready'); }

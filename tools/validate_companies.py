@@ -11,7 +11,7 @@ import json, os, re, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA = os.path.join(ROOT, 'assets', 'globe', 'companies.json')
-SECTORS = {'Software & AI', 'Finance & Fintech', 'Commerce', 'Media & Entertainment', 'Infrastructure & Technology', 'Other'}
+SECTORS = {'Software & AI', 'Finance & Fintech', 'Commerce', 'Media & Entertainment', 'Infrastructure & Technology', 'Consumer & Industry'}
 STATUSES = {'verified', 'needs-review', 'disputed', 'unsupported'}
 REQUIRED = ['id', 'name', 'sector', 'founded', 'city', 'country', 'lat', 'lon', 'coordPrecision', 'status']
 URL = re.compile(r'^https://[^\s/$.?#].[^\s]*$')
