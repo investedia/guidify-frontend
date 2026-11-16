@@ -1,14 +1,14 @@
-# Guidify Homepage — Approved Design (Concept C · Chapters)
+# Guidify Homepage — Approved Design (Concept C · Search-led)
 
-**Status:** Approved by the owner after Round 2 (Concept C, "Chapters").
+**Status:** Approved by the owner after Round 2 (Concept C). **Revision 2:** the scroll-driven chapter story was removed by the owner; the hero is search-led.
 **Repository:** `investedia/guidify-frontend` · implement on a branch from `main`, never directly on `main`.
 **Previews:** `docs/approved-previews/` (desktop 1440 px, phone iPhone 13 / 390 px). These are the visual reference. Where this document and a preview disagree, this document wins.
 **Not authorised by this document:** pushing, merging or deploying. Those need separate owner approval.
 
 | Preview | Shows |
 |---|---|
-| `d1-hero.jpg` | Full desktop homepage, chapter 1 |
-| `d2-chapter.jpg` | Hero scrolled to a later chapter (Nubank) |
+| `d1-hero.jpg` | Full desktop homepage (the chapter kicker and progress bar shown there are superseded) |
+| `d2-chapter.jpg` | *Superseded (scroll story removed)* — use `d4-filter.jpg` for the selected-company card |
 | `d3-search.jpg` | Search with suggestions |
 | `d4-filter.jpg` | Sector filter applied |
 | `d5-empty.jpg` | Search with no results |
@@ -29,7 +29,7 @@ Guidify is an independent digital product company. It started building digital p
 ### Final copy (use verbatim)
 
 **Hero**
-- Kicker: `Chapter 1 · From ideas to impact` (the chapter number and label change per chapter, see §3)
+- Kicker: `From ideas to impact`
 - H1: **Every big product began somewhere.**
 - Subtitle: *Explore the stories behind products people use every day: the problem, the solution, and where it started.*
 - Search placeholder: `Search companies`
@@ -71,27 +71,21 @@ Guidify is an independent digital product company. It started building digital p
 - Colours: `--bg #080808`, `--bg-2 #121212`, `--fg #FFFFFF`, `--fg-2 #999999`, `--line #292929`, `--line-2 #3a3a3a`. Black, white and greys only; product screenshots may keep their own colours.
 - Type: Inter 400/500/600. H1 `clamp(48px, 6vw, 84px)`, weight 500, letter-spacing −0.05em, line-height 1.0. Section H2 `clamp(36px, 5vw, 64px)`, weight 500, −0.04em. Body 16–19px, `--fg-2`. Kickers 12px uppercase, letter-spacing 0.14em.
 - Radii: pills 999px; cards 16px; product cards 18px; bottom sheet 20px top corners.
-- Motion: 180–300ms for UI transitions; the camera move between chapters takes about 900ms with ease-in-out. No glow, gradients or glassmorphism. Text over the globe may use a soft dark text-shadow for legibility, as in the previews.
+- Motion: 180–300ms for UI transitions; the camera move to a selected company takes about 900ms with ease-in-out. No glow, gradients or glassmorphism. Text over the globe may use a soft dark text-shadow for legibility, as in the previews.
 - Container max width 1200px; gutters `clamp(20px, 4vw, 40px)`.
 
-## 3. Hero layout and the chapter story
+## 3. Hero layout (search-led; no scroll story)
 
-### Desktop (≥ 961px)
-- The hero is at least `100vh − header` tall. The globe fills the background, centred, about `min(1150px, 120vw)` square, at about 60% opacity. Text and controls sit in front of it.
-- Two-column grid: left column for the kicker, H1, subtitle, search and progress bar; right column (360px) for the current company card. The bottom edges are aligned.
-- Progress bar: 6 segments, 22×2px each; the active segment is white.
+### Desktop (> 900px)
+- The hero is at least `100vh − header` tall. The globe fills the background, centred, about `min(1150px, 120vw)` square, at about 62% opacity. Text and controls sit in front of it.
+- Two-column grid. Left column: kicker, H1, subtitle, then the search box with the sector chips directly under it. Right column (360px): a short prompt card, *Search or tap a logo to read how a company started.*, which is replaced by the selected company's card. The bottom edges are aligned.
+- There is **no scroll story**: no chapters, no progress bar, and no scroll-driven camera moves. The page scrolls normally. The globe auto-rotates slowly until the user selects a company or interacts.
+- Zoom buttons (+ / −) sit at the bottom right of the hero. Pinch or Ctrl + scroll also zoom; a plain mouse wheel scrolls the page.
 
-### Chapters (scroll-driven)
-- The hero is a sticky scroll section with **6 chapters**. Scrolling through it moves to the next chapter: the globe rotates and focuses on that company, the right-hand card swaps, and the kicker changes to `Chapter N · City, Year`.
-- Approved chapter companies, in this order: **Spotify, Nubank, M-Pesa (Safaricom), Gojek, Shopify, Canva**. Any chapter company whose record isn't **Verified** (§5) is replaced by the next verified company from a different region. Canva is a candidate and may only appear once verified.
-- After chapter 6 the page continues into the Mission section.
-- Users can always drag or zoom the globe, or use search, during the chapters. User interaction pauses the chapter auto-focus until the next scroll step.
-- **Reduced motion:** no scroll-driven camera moves. The six chapters become a static list of six cards under the hero.
-
-### Phone (≤ 960px)
-- The globe sits at the top of the hero (about 62vw high, cropped). The kicker, H1, subtitle and search are stacked below it and left-aligned (see `m1-hero.jpg`).
-- The chapter card isn't pinned on phones. Chapters advance on scroll the same way, but the card appears as a compact strip under the search. Tapping the strip opens the bottom sheet.
-- One finger scrolls the page; two fingers turn and zoom the globe. This already works today and must be kept.
+### Phone (≤ 900px)
+- The globe sits at the top of the hero (about 62vw high, cropped). The kicker, H1, subtitle, search and chips are stacked below it, left-aligned. A one-line hint sits under the chips: *Search, or tap a logo to read how a company started.*
+- There is no hero card on phones. Selecting a company opens the bottom sheet (§4.5).
+- One finger scrolls the page; two fingers turn and zoom the globe.
 
 ## 4. Globe interaction
 
@@ -101,7 +95,7 @@ Guidify is an independent digital product company. It started building digital p
 - Matches company display names, with diacritics ignored (also city names if that's simple to add). It shows up to 6 suggestions, each with the name and `City · Year`.
 - Navigation: ↑/↓ to move, Enter to select, Esc to close. ARIA combobox pattern (`role="combobox"`, `aria-expanded`, `aria-activedescendant`, `role="listbox"`/`option`).
 - Selecting a company:
-  - the globe rotates and focuses on it (same camera move as the chapters);
+  - the globe rotates and focuses on it (about 900ms, ease-in-out; instant with reduced motion);
   - its marker is highlighted;
   - on desktop the compact card opens in the right column; on phones the bottom sheet opens.
 - No results: *No companies match “{query}”. Try a company name or a city.* (screen readers hear this through a polite live region).
@@ -109,12 +103,12 @@ Guidify is an independent digital product company. It started building digital p
 ### 4.2 Sector filters (`d4`)
 - Chips: `All` · `Software & AI` · `Finance & Fintech` · `Commerce` · `Media & Entertainment` · `Infrastructure & Technology` (may show as `Infrastructure`) · `Other`.
 - One sector at a time. The active chip has a lighter border, a `#1a1a1a` fill and a `×` to clear it, and `aria-pressed="true"`.
-- Filtering hides non-matching markers and badges without rebuilding the scene (toggle visibility). Search only suggests companies in the active sector. The kicker shows the sector name while a filter is active.
+- Filtering hides non-matching markers and badges without rebuilding the scene (toggle visibility). Search only suggests companies in the active sector.
 - Sectors must come from the structured data (§5), never guessed.
 
 ### 4.3 Desktop hover and click
 - Hover a badge: the badge enlarges slightly and a tooltip shows the name and `City · Year`.
-- Click a badge: the compact card opens in the right column (as in `d1`/`d2`).
+- Click a badge: the compact card opens in the right column (as in `d4-filter.jpg`).
 - The compact card shows:
   - logo or lettermark, name, `City, Country · Founded YYYY`;
   - Original problem, Solution and How it grew, about one line each;
@@ -175,7 +169,7 @@ Guidify is an independent digital product company. It started building digital p
 - Keyboard: `/` for search; Tab through the chips, card actions and list; Esc closes panels and sheets. The globe canvas itself isn't a keyboard trap.
 - The globe canvas gets an `aria-label` pointing to the list alternative. Badges aren't the only way to reach any information.
 - Contrast: body text at least 4.5:1 on `--bg`. `#7a7a7a` labels are only used at 11–12px uppercase, and must pass 4.5:1 or be lightened to `#8a8a8a`.
-- Reduced motion: no auto-rotate, no scroll-driven camera, instant panel transitions.
+- Reduced motion: no auto-rotate, instant camera focus, instant panel transitions.
 
 ## 7. Performance
 
@@ -194,7 +188,7 @@ Guidify is an independent digital product company. It started building digital p
 
 1. The hero copy, the Mission, Products and Story sections, contact and footer match §1 word for word, and the removed elements in §1 are gone.
 2. Desktop 1440px and phone 390px match the previews in layout and hierarchy; no horizontal scroll at 1440, 768, 390 or 360px.
-3. Six chapters advance on scroll with a camera move to each company; reduced motion shows six static cards instead.
+3. No scroll-driven story: the page scrolls normally; the globe auto-rotates until a company is selected (no auto-rotate with reduced motion).
 4. Search: `/` focuses; arrow keys and Enter select; Esc closes; selecting a company focuses the globe and opens the card or sheet; the no-results message shows and is announced.
 5. Filters: each chip shows only that sector's markers, without rebuilding the scene; `×` or `All` clears.
 6. Desktop: hover shows a tooltip; click opens the compact card; `Read the full story` opens the panel; Esc, ✕ and the scrim close it; focus returns to the opener.
@@ -207,6 +201,7 @@ Guidify is an independent digital product company. It started building digital p
 
 ## 10. Rejected directions
 
-- **A · Atlas:** centred headline with the globe and search below. Rejected in favour of C's narrative scroll.
+- **A · Atlas:** centred headline with the globe and search below. Rejected in favour of C.
+- **C · Chapters scroll story** (six scroll-driven chapters with a progress bar): removed by the owner in revision 2.
 - **B · Split explorer:** headline and list on the left, globe on the right. Rejected, although its accessible list survives as §4.6.
 - Hero "Digital solutions for entrepreneurs." / "Build something of your own." (too narrow), the particle and solid 3D "G" heroes, and the "Brought to you by Investedia" credit.

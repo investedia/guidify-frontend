@@ -1,18 +1,22 @@
-// Monochrome dotted globe with markers where widely used companies, apps and sites were founded.
+// Monochrome dotted globe with markers where widely used companies were founded.
+// The explorer UI (companies-ui.js) owns search, filters and details; this file draws the globe and
+// reacts to its events. Picking a marker emits `guidify:pick`; the UI turns that into a selection.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const touch = matchMedia('(pointer: coarse)').matches;
 const stage = document.getElementById('globe');
 const tip = document.getElementById('tip');
-document.body.appendChild(tip); // keep the card outside the moving globe so it sits under the cursor
+const zoomUI = document.getElementById('globe-zoom');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const touch = matchMedia('(pointer: coarse)').matches;
 
 function toXYZ(lat, lon, r) {
   const phi = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180;
   return new THREE.Vector3(-r * Math.sin(phi) * Math.cos(th), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(th));
 }
-
+function hasWebGL() {
+  try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; }
+}
 // Round dot texture for the land points.
 function dotTexture() {
   const c = document.createElement('canvas'); c.width = c.height = 32;
@@ -20,165 +24,200 @@ function dotTexture() {
   return new THREE.CanvasTexture(c);
 }
 
-// Badge: dark circle, hairline ring, white logo (or initials when no logo exists).
-async function badge(company) {
-  const size = 256, c = document.createElement('canvas'); c.width = c.height = size;
-  const g = c.getContext('2d');
-  g.fillStyle = '#121212'; g.beginPath(); g.arc(128, 128, 120, 0, Math.PI * 2); g.fill();
-  g.strokeStyle = '#5a5a5a'; g.lineWidth = 5; g.stroke();
-  if (company.logo) {
-    try {
-      let svg = await (await fetch(company.logo)).text();
-      svg = svg.replace('<svg ', '<svg fill="#ffffff" width="128" height="128" ');
-      const img = new Image();
-      img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
-      await img.decode();
-      g.drawImage(img, 64, 64, 128, 128);
-    } catch (e) { company.logo = ''; }
+if (stage && hasWebGL()) start().catch((err) => console.warn('Globe unavailable; the still image stays.', err));
+
+async function start() {
+  const lowEnd = (navigator.hardwareConcurrency || 8) <= 4;
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, lowEnd ? 1.5 : 2));
+  renderer.domElement.setAttribute('aria-hidden', 'true');
+  stage.appendChild(renderer.domElement);
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
+  camera.position.copy(toXYZ(30, -40, 3.7));
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enablePan = false; controls.enableDamping = true;
+  controls.enableZoom = true; controls.minDistance = 2.7; controls.maxDistance = 4.6; controls.zoomSpeed = 0.6;
+  controls.autoRotate = !reduce; controls.autoRotateSpeed = 0.35;
+  if (touch) {
+    // One finger scrolls the page; two fingers turn and zoom the globe.
+    controls.touches = { ONE: -1, TWO: THREE.TOUCH.DOLLY_ROTATE };
+    renderer.domElement.style.touchAction = 'pan-y';
   }
-  if (!company.logo) {
-    g.fillStyle = '#fff'; g.font = '600 88px Inter, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-    g.fillText(company.name.replace(/[^A-Za-z]/g, '').slice(0, 2), 128, 134);
+  // A plain mouse wheel keeps scrolling the page; trackpad pinch or Ctrl + scroll zooms.
+  stage.addEventListener('wheel', (e) => { if (!e.ctrlKey) e.stopPropagation(); }, { capture: true });
+
+  function zoomBy(f) {
+    camera.position.setLength(THREE.MathUtils.clamp(camera.position.length() * f, controls.minDistance, controls.maxDistance));
+    controls.update();
   }
-  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
-  return t;
-}
+  if (zoomUI && !touch) {
+    zoomUI.hidden = false;
+    zoomUI.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-zoom]');
+      if (b) zoomBy(b.dataset.zoom === 'in' ? 0.9 : 1 / 0.9);
+    });
+  }
 
-const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-stage.appendChild(renderer.domElement);
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
-camera.position.copy(toXYZ(30, -40, 3.7));
+  // Globe body and a faint rim so the edge reads against black.
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.995, 64, 48), new THREE.MeshBasicMaterial({ color: 0x0b0b0b })));
+  scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.03, 64, 48),
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.045, side: THREE.BackSide, depthWrite: false })));
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableZoom = true; controls.minDistance = 2.7; controls.maxDistance = 4.6; controls.zoomSpeed = 0.6; controls.enablePan = false; controls.enableDamping = true;
-controls.autoRotate = !reduce; controls.autoRotateSpeed = 0.35;
-if (touch) {
-  // One finger scrolls the page; two fingers turn and zoom the globe.
-  controls.touches = { ONE: -1, TWO: THREE.TOUCH.DOLLY_ROTATE };
-  renderer.domElement.style.touchAction = 'pan-y';
-}
+  const [dots, companies] = await Promise.all([
+    fetch('assets/globe/land-dots.json').then((r) => r.json()),
+    fetch('assets/globe/companies.json').then((r) => r.json()),
+  ]);
 
-// Zoom: trackpad pinch or Ctrl + scroll zooms; a plain mouse wheel keeps scrolling the page.
-stage.addEventListener('wheel', (e) => { if (!e.ctrlKey) e.stopPropagation(); }, { capture: true });
-// + / − buttons for visitors without a trackpad.
-function zoomBy(f) {
-  const d = THREE.MathUtils.clamp(camera.position.length() * f, controls.minDistance, controls.maxDistance);
-  camera.position.setLength(d); controls.update();
-}
-const zoomUI = document.createElement('div');
-zoomUI.className = 'globe-zoom';
-zoomUI.innerHTML = '<button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button>';
-zoomUI.children[0].addEventListener('click', () => zoomBy(0.9));
-zoomUI.children[1].addEventListener('click', () => zoomBy(1 / 0.9));
-stage.appendChild(zoomUI);
+  const pos = new Float32Array(dots.length * 3);
+  dots.forEach(([lat, lon], i) => toXYZ(lat, lon, 1).toArray(pos, i * 3));
+  const dotGeo = new THREE.BufferGeometry(); dotGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  scene.add(new THREE.Points(dotGeo, new THREE.PointsMaterial({
+    size: 0.016, map: dotTexture(), color: 0xa8a8a8, transparent: true, alphaTest: 0.4, sizeAttenuation: true,
+  })));
 
-// Globe body and a faint rim so the edge reads against black.
-scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.995, 64, 48), new THREE.MeshBasicMaterial({ color: 0x0b0b0b })));
-scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.03, 64, 48),
-  new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.045, side: THREE.BackSide, depthWrite: false })));
+  // Badge: dark circle, hairline ring, white logo (or initials when no logo exists).
+  async function badge(c) {
+    const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#121212'; g.beginPath(); g.arc(128, 128, 120, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#5a5a5a'; g.lineWidth = 5; g.stroke();
+    let drawn = false;
+    if (c.logo) {
+      try {
+        let svg = await (await fetch(c.logo)).text();
+        svg = svg.replace('<svg ', '<svg fill="#ffffff" width="128" height="128" ');
+        const img = new Image();
+        img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        await img.decode();
+        g.drawImage(img, 64, 64, 128, 128);
+        drawn = true;
+      } catch (e) { /* fall back to initials */ }
+    }
+    if (!drawn) {
+      g.fillStyle = '#fff'; g.font = '600 88px Inter, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(c.name.replace(/\(.*?\)/g, '').replace(/[^A-Za-z]/g, '').slice(0, 2), 128, 134);
+    }
+    const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+    return t;
+  }
 
-const [dots, companies] = await Promise.all([
-  fetch('assets/globe/land-dots.json').then(r => r.json()),
-  fetch('assets/globe/companies.json').then(r => r.json()),
-]);
+  // Companies in the same city are spread in a small ring so their badges don't overlap.
+  const groups = {};
+  companies.forEach((c) => (groups[c.lat + ',' + c.lon] ||= []).push(c));
+  Object.values(groups).forEach((list) => list.forEach((c, k) => {
+    if (list.length < 2) return;
+    const a = (2 * Math.PI * k) / list.length, rr = 1.6 + 0.35 * list.length;
+    c.plat = c.lat + rr * Math.sin(a); c.plon = c.lon + rr * Math.cos(a) / Math.cos(c.lat * Math.PI / 180);
+  }));
 
-const pos = new Float32Array(dots.length * 3);
-dots.forEach(([lat, lon], i) => toXYZ(lat, lon, 1).toArray(pos, i * 3));
-const dotGeo = new THREE.BufferGeometry(); dotGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-scene.add(new THREE.Points(dotGeo, new THREE.PointsMaterial({
-  size: 0.016, map: dotTexture(), color: 0xa8a8a8, transparent: true, alphaTest: 0.4, sizeAttenuation: true,
-})));
+  const pinMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+  const pinGeo = new THREE.SphereGeometry(0.006, 8, 8);
+  const markers = []; // sprites that are ready
+  const byId = new Map();
+  for (const c of companies) {
+    const p = toXYZ(c.plat ?? c.lat, c.plon ?? c.lon, 1.075);
+    const pin = new THREE.Mesh(pinGeo, pinMat);
+    pin.position.copy(toXYZ(c.lat, c.lon, 1.002)); scene.add(pin);
+    const entry = { c, pin, pos: p, sprite: null, filtered: false };
+    byId.set(c.id, entry);
+    badge(c).then((map) => {
+      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false }));
+      sprite.position.copy(p); sprite.scale.setScalar(0.09); sprite.userData = entry;
+      entry.sprite = sprite; scene.add(sprite); markers.push(sprite);
+    });
+  }
 
-// Companies in the same city are spread in a small ring so their badges don't overlap.
-const groups = {};
-companies.forEach(c => (groups[c.lat + ',' + c.lon] ||= []).push(c));
-Object.values(groups).forEach(list => list.forEach((c, k) => {
-  if (list.length < 2) return;
-  const a = (2 * Math.PI * k) / list.length, rr = 1.6 + 0.35 * list.length;
-  c.plat = c.lat + rr * Math.sin(a); c.plon = c.lon + rr * Math.cos(a) / Math.cos(c.lat * Math.PI / 180);
-}));
-
-const markers = [];
-const pinMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-// Pins appear at once; logos load in parallel and pop in as each arrives, so the globe never waits.
-const pinGeo = new THREE.SphereGeometry(0.006, 8, 8);
-for (const c of companies) {
-  const lat = c.plat ?? c.lat, lon = c.plon ?? c.lon;
-  const pin = new THREE.Mesh(pinGeo, pinMat);
-  pin.position.copy(toXYZ(c.lat, c.lon, 1.002)); scene.add(pin);
-  badge(c).then((map) => {
-    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false }));
-    sprite.position.copy(toXYZ(lat, lon, 1.075)); sprite.scale.setScalar(0.09); sprite.userData = c;
-    scene.add(sprite); markers.push(sprite);
+  // ---------- Selection, focus and filtering ----------
+  let selected = null, hovered = null, anim = null;
+  const qTmp = new THREE.Quaternion(), qId = new THREE.Quaternion();
+  function focus(id) {
+    const m = byId.get(id);
+    if (!m) return;
+    selected = id;
+    controls.autoRotate = false;
+    const dist = camera.position.length();
+    const from = camera.position.clone().normalize();
+    const to = m.pos.clone().normalize();
+    if (reduce) { camera.position.copy(to.multiplyScalar(dist)); controls.update(); return; }
+    anim = { from, q: new THREE.Quaternion().setFromUnitVectors(from, to), dist, t0: performance.now(), dur: 900 };
+  }
+  controls.addEventListener('start', () => { anim = null; });
+  document.addEventListener('guidify:select', (e) => focus(e.detail.id));
+  document.addEventListener('guidify:close', () => { selected = null; controls.autoRotate = !reduce; });
+  document.addEventListener('guidify:filter', (e) => {
+    const s = e.detail.sector;
+    for (const m of byId.values()) {
+      m.filtered = s !== 'All' && m.c.sector !== s;
+      m.pin.visible = !m.filtered;
+    }
   });
-}
 
-// Hover a badge to see the company, city and founding year.
-const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let hovered = null;
-renderer.domElement.addEventListener('pointermove', e => {
-  if (e.pointerType === 'touch') return;
-  const r = renderer.domElement.getBoundingClientRect();
-  mouse.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
-  ray.setFromCamera(mouse, camera);
-  const hit = ray.intersectObjects(markers.filter(m => m.visible))[0];
-  hovered = hit ? hit.object : null;
-  if (hovered) {
-    const c = hovered.userData;
-    tip.innerHTML = `<strong>${c.name}</strong><span>${c.city} · Founded ${c.year}</span>${c.story ? `<p>${c.story}</p>` : ''}`;
-    const x = Math.min(e.clientX + 16, innerWidth - 300); tip.style.left = x + 'px'; tip.style.top = e.clientY + 16 + 'px';
-    tip.hidden = false; controls.autoRotate = false;
-  } else { tip.hidden = true; controls.autoRotate = !reduce; }
-});
-function pick(clientX, clientY) {
-  const r = renderer.domElement.getBoundingClientRect();
-  mouse.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
-  ray.setFromCamera(mouse, camera);
-  const hit = ray.intersectObjects(markers.filter(m => m.visible))[0];
-  return hit ? hit.object : null;
-}
-function showCard(c, x, y) {
-  tip.innerHTML = `<strong>${c.name}</strong><span>${c.city} · Founded ${c.year}</span>${c.story ? `<p>${c.story}</p>` : ''}`;
-  const w = Math.min(280, innerWidth - 32);
-  tip.style.width = w + 'px';
-  tip.style.left = Math.max(16, Math.min(x + 16, innerWidth - w - 16)) + 'px';
-  tip.style.top = y + 16 + 'px';
-  tip.hidden = false;
-}
-// Phones: tap a logo to open its card, tap anywhere else to close it.
-if (touch) {
-  renderer.domElement.addEventListener('click', e => {
+  // ---------- Pointer: hover tooltip and tap / click to pick ----------
+  const ray = new THREE.Raycaster(), mouse = new THREE.Vector2();
+  function pick(x, y) {
+    const r = renderer.domElement.getBoundingClientRect();
+    mouse.set(((x - r.left) / r.width) * 2 - 1, -((y - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(mouse, camera);
+    const hit = ray.intersectObjects(markers.filter((m) => m.visible))[0];
+    return hit ? hit.object.userData : null;
+  }
+  renderer.domElement.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch') return;
     const m = pick(e.clientX, e.clientY);
-    hovered = m;
-    if (m) { showCard(m.userData, e.clientX, e.clientY); controls.autoRotate = false; }
-    else { tip.hidden = true; controls.autoRotate = !reduce; }
+    hovered = m ? m.c.id : null;
+    renderer.domElement.style.cursor = m ? 'pointer' : '';
+    if (m) {
+      tip.innerHTML = `<strong>${m.c.name}</strong><span>${m.c.city} · ${m.c.founded}</span>`;
+      tip.style.left = Math.min(e.clientX + 14, innerWidth - 240) + 'px';
+      tip.style.top = e.clientY + 14 + 'px';
+      tip.hidden = false;
+    } else tip.hidden = true;
   });
-  addEventListener('scroll', () => { if (!tip.hidden) { tip.hidden = true; hovered = null; controls.autoRotate = !reduce; } }, { passive: true });
-}
-renderer.domElement.addEventListener('pointerleave', () => { tip.hidden = true; controls.autoRotate = !reduce; });
+  renderer.domElement.addEventListener('pointerleave', () => { tip.hidden = true; hovered = null; });
+  // Ignore the click that ends a drag, rotation or pinch.
+  let down = null;
+  renderer.domElement.addEventListener('pointerdown', (e) => { down = { x: e.clientX, y: e.clientY }; });
+  renderer.domElement.addEventListener('click', (e) => {
+    if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 8) return;
+    const m = pick(e.clientX, e.clientY);
+    if (m) { tip.hidden = true; document.dispatchEvent(new CustomEvent('guidify:pick', { detail: { id: m.c.id } })); }
+  });
 
-function resize() {
-  const w = stage.clientWidth, h = stage.clientHeight;
-  renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
-}
-new ResizeObserver(resize).observe(stage); resize();
-
-const camDir = new THREE.Vector3(), tmp = new THREE.Vector3();
-let visible = true;
-new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
-renderer.setAnimationLoop(() => {
-  if (!visible) return;
-  controls.update();
-  const sp = Math.min(1, scrollY / innerHeight);
-  scene.rotation.y = reduce ? 0 : sp * 1.8;
-  stage.style.setProperty('--sp', sp.toFixed(3));
-  camDir.copy(camera.position).normalize();
-  for (const m of markers) {
-    const d = m.getWorldPosition(tmp).normalize().dot(camDir);
-    m.visible = d > 0.12;                       // only badges on the visible face
-    const s = (m === hovered ? 0.12 : 0.09) * Math.min(1, (d - 0.12) * 4 + 0.4);
-    m.scale.setScalar(Math.max(0, s));
+  // ---------- Size, visibility and the render loop ----------
+  function resize() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
   }
-  renderer.render(scene, camera);
-});
+  new ResizeObserver(resize).observe(stage); resize();
+
+  const camDir = new THREE.Vector3(), tmp = new THREE.Vector3();
+  let onScreen = true, firstFrame = true;
+  function frame(now) {
+    if (anim) {
+      const t = Math.min(1, (now - anim.t0) / anim.dur);
+      const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      qTmp.slerpQuaternions(qId, anim.q, e);
+      camera.position.copy(anim.from).applyQuaternion(qTmp).multiplyScalar(anim.dist);
+      if (t >= 1) anim = null;
+    }
+    controls.update();
+    camDir.copy(camera.position).normalize();
+    for (const m of markers) {
+      const entry = m.userData;
+      const d = tmp.copy(m.position).normalize().dot(camDir);
+      m.visible = !entry.filtered && d > 0.12;
+      const base = entry.c.id === selected ? 0.13 : entry.c.id === hovered ? 0.11 : 0.09;
+      m.scale.setScalar(Math.max(0, base * Math.min(1, (d - 0.12) * 4 + 0.4)));
+    }
+    renderer.render(scene, camera);
+    if (firstFrame) { firstFrame = false; stage.classList.add('is-ready'); }
+  }
+  const run = () => renderer.setAnimationLoop(onScreen && !document.hidden ? frame : null);
+  new IntersectionObserver(([e]) => { onScreen = e.isIntersecting; run(); }).observe(stage);
+  document.addEventListener('visibilitychange', run);
+  run();
+}
