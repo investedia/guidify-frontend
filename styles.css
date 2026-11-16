@@ -236,7 +236,7 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
   .hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; }
   .hero-copy { max-width: 900px; display: flex; flex-direction: column; align-items: center; }
   .hero .lead { margin-left: auto; margin-right: auto; }
-  #globe { width: min(1000px, 100%); aspect-ratio: 2 / 1; margin-top: 8px; transform: translateY(calc(var(--sp, 0) * -160px)) scale(calc(1 + var(--sp, 0) * 0.2)); transform-origin: 50% 0; will-change: transform; }
+  #globe { width: min(760px, 100%); aspect-ratio: 2 / 1; margin-top: 8px; transform: translateY(calc(var(--sp, 0) * -120px)) scale(calc(1 + var(--sp, 0) * 0.1)); transform-origin: 50% 0; will-change: transform; }
   #globe canvas { height: 200% !important; }
   .credit { bottom: -6px; }
 }
