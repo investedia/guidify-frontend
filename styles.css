@@ -247,3 +247,9 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
 .globe-zoom button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line-2); background: var(--bg-2); color: var(--fg); font: 500 18px/1 Inter, system-ui, sans-serif; cursor: pointer; transition: background var(--ease), color var(--ease); }
 .globe-zoom button:hover, .globe-zoom button:focus-visible { background: var(--fg); color: var(--bg); }
 @media (min-width: 961px) { .globe-zoom { left: auto; right: 8px; bottom: auto; top: 8px; } }
+
+/* Fade the canvas edges so a zoomed-in globe never shows a square cut-off */
+#globe canvas { -webkit-mask-image: radial-gradient(closest-side, #000 82%, transparent 100%); mask-image: radial-gradient(closest-side, #000 82%, transparent 100%); }
+/* Zoom buttons stay grey: no white state */
+.globe-zoom button { color: #bdbdbd; }
+.globe-zoom button:hover, .globe-zoom button:focus-visible { background: #1c1c1c; color: var(--fg); border-color: #555; }
