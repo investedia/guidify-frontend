@@ -160,6 +160,21 @@
       </div>
     </section>
 
+    <section class="section" id="origins" aria-labelledby="origins-title">
+      <div class="container origins-grid">
+        <div class="reveal">
+          <p class="eyebrow">Origins</p>
+          <h2 class="section-title" id="origins-title">Where today’s products began.</h2>
+          <p class="origins-lead">Fifty companies, apps and sites people use every day, placed where they were founded.</p>
+          <p class="origins-hint">Drag to turn the globe. Hover a logo for the city and year.</p>
+        </div>
+        <div id="globe" aria-label="Interactive globe of company founding locations">
+          <div id="tip" hidden></div>
+          <a class="credit" href="https://investedia.com" target="_blank" rel="noopener">Brought to you by <strong>Investedia</strong></a>
+        </div>
+      </div>
+    </section>
+
     <section class="section" id="about" aria-labelledby="about-title">
       <div class="container">
         <div class="section-split reveal">
@@ -225,5 +240,15 @@
 
   <script src="script.js" defer></script>
   <script type="module" src="assets/3d/hero.js"></script>
+  <script type="module">
+    // Load the globe only when it is about to scroll into view.
+    const el = document.getElementById('globe');
+    if (el) {
+      const io = new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) { io.disconnect(); import('./assets/globe/globe.js'); }
+      }, { rootMargin: '400px' });
+      io.observe(el);
+    }
+  </script>
 </body>
 </html>

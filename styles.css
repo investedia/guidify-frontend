@@ -210,3 +210,18 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
 .principle p { color: var(--fg-2); }
 .approach-note { margin-top: 36px; color: var(--fg-2); }
 @media (max-width: 720px) { .principle-grid { grid-template-columns: 1fr; } .principle { padding: 24px; } }
+
+/* Origins globe */
+.origins-grid { display: grid; grid-template-columns: .9fr 1.1fr; gap: clamp(24px, 4vw, 64px); align-items: center; }
+.origins-lead { color: var(--fg-2); font-size: 18px; line-height: 1.55; max-width: 42ch; margin: 22px 0 14px; }
+.origins-hint { font-size: 13px; color: #6f6f6f; }
+#globe { position: relative; width: 100%; aspect-ratio: 1 / 1; cursor: grab; }
+#globe:active { cursor: grabbing; }
+#globe canvas { width: 100% !important; height: 100% !important; display: block; }
+#tip { position: absolute; pointer-events: none; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; white-space: nowrap; z-index: 2; }
+#tip span { color: var(--fg-2); }
+#tip[hidden] { display: none; }
+.credit { position: absolute; right: 8px; bottom: 8px; z-index: 2; font-size: 12px; color: #6f6f6f; transition: color var(--ease); }
+.credit strong { color: #bdbdbd; font-weight: 500; }
+.credit:hover, .credit:hover strong { color: var(--fg); }
+@media (max-width: 960px) { .origins-grid { grid-template-columns: 1fr; } }
