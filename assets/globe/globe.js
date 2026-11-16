@@ -96,13 +96,17 @@ Object.values(groups).forEach(list => list.forEach((c, k) => {
 
 const markers = [];
 const pinMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+// Pins appear at once; logos load in parallel and pop in as each arrives, so the globe never waits.
+const pinGeo = new THREE.SphereGeometry(0.006, 8, 8);
 for (const c of companies) {
   const lat = c.plat ?? c.lat, lon = c.plon ?? c.lon;
-  const pin = new THREE.Mesh(new THREE.SphereGeometry(0.006, 8, 8), pinMat);
+  const pin = new THREE.Mesh(pinGeo, pinMat);
   pin.position.copy(toXYZ(c.lat, c.lon, 1.002)); scene.add(pin);
-  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: await badge(c), transparent: true, depthWrite: false }));
-  sprite.position.copy(toXYZ(lat, lon, 1.075)); sprite.scale.setScalar(0.09); sprite.userData = c;
-  scene.add(sprite); markers.push(sprite);
+  badge(c).then((map) => {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map, transparent: true, depthWrite: false }));
+    sprite.position.copy(toXYZ(lat, lon, 1.075)); sprite.scale.setScalar(0.09); sprite.userData = c;
+    scene.add(sprite); markers.push(sprite);
+  });
 }
 
 // Hover a badge to see the company, city and founding year.
