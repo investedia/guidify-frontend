@@ -253,3 +253,15 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
 /* Zoom buttons stay grey: no white state */
 .globe-zoom button { color: #bdbdbd; }
 .globe-zoom button:hover, .globe-zoom button:focus-visible { background: #1c1c1c; color: var(--fg); border-color: #555; }
+
+/* Phone hero (B): centred text, globe rising below, smaller scroll movement */
+@media (max-width: 960px) {
+  .hero { padding-bottom: 0; overflow: hidden; }
+  .hero-grid { justify-items: center; text-align: center; }
+  .hero-copy { display: flex; flex-direction: column; align-items: center; }
+  .hero .lead { margin-left: auto; margin-right: auto; }
+  #globe { width: 100%; aspect-ratio: 5 / 4; margin-top: 4px; transform: translateY(calc(var(--sp, 0) * -60px)); will-change: transform; }
+  #globe canvas { height: 150% !important; }
+  .credit { bottom: -2px; right: 0; left: 0; text-align: center; }
+  .globe-zoom { display: none; }
+}
