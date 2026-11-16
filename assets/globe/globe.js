@@ -5,6 +5,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const stage = document.getElementById('globe');
 const tip = document.getElementById('tip');
+document.body.appendChild(tip); // keep the card outside the moving globe so it sits under the cursor
 
 function toXYZ(lat, lon, r) {
   const phi = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180;
@@ -100,8 +101,8 @@ renderer.domElement.addEventListener('pointermove', e => {
   hovered = hit ? hit.object : null;
   if (hovered) {
     const c = hovered.userData;
-    tip.innerHTML = `<strong>${c.name}</strong><span>${c.city} · ${c.year}</span>`;
-    tip.style.left = e.clientX - r.left + 14 + 'px'; tip.style.top = e.clientY - r.top + 14 + 'px';
+    tip.innerHTML = `<strong>${c.name}</strong><span>${c.city} · Founded ${c.year}</span>${c.story ? `<p>${c.story}</p>` : ''}`;
+    const x = Math.min(e.clientX + 16, innerWidth - 300); tip.style.left = x + 'px'; tip.style.top = e.clientY + 16 + 'px';
     tip.hidden = false; controls.autoRotate = false;
   } else { tip.hidden = true; controls.autoRotate = !reduce; }
 });
@@ -119,9 +120,12 @@ new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage
 renderer.setAnimationLoop(() => {
   if (!visible) return;
   controls.update();
+  const sp = Math.min(1, scrollY / innerHeight);
+  scene.rotation.y = reduce ? 0 : sp * 1.8;
+  stage.style.setProperty('--sp', sp.toFixed(3));
   camDir.copy(camera.position).normalize();
   for (const m of markers) {
-    const d = tmp.copy(m.position).normalize().dot(camDir);
+    const d = m.getWorldPosition(tmp).normalize().dot(camDir);
     m.visible = d > 0.12;                       // only badges on the visible face
     const s = (m === hovered ? 0.12 : 0.09) * Math.min(1, (d - 0.12) * 4 + 0.4);
     m.scale.setScalar(Math.max(0, s));

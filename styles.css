@@ -225,3 +225,19 @@ main, .site-header, .site-footer { position: relative; z-index: 1; }
 .credit strong { color: #bdbdbd; font-weight: 500; }
 .credit:hover, .credit:hover strong { color: var(--fg); }
 @media (max-width: 960px) { .origins-grid { grid-template-columns: 1fr; } }
+
+/* Hover card: name, city, founding year and a short backstory */
+#tip { position: fixed; width: 280px; white-space: normal; line-height: 1.45; z-index: 60; text-align: left; }
+#tip p { margin: 6px 0 0; color: #cfcfcf; font-size: 13px; }
+
+/* Desktop hero (B): centred headline, globe rising from below; on scroll it lifts, grows and spins */
+@media (min-width: 961px) {
+  .hero { padding-bottom: 0; overflow: hidden; }
+  .hero-grid { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+  .hero-copy { max-width: 900px; display: flex; flex-direction: column; align-items: center; }
+  .hero .lead { margin-left: auto; margin-right: auto; }
+  #globe { width: min(1000px, 100%); aspect-ratio: 2 / 1; margin-top: 8px; transform: translateY(calc(var(--sp, 0) * -160px)) scale(calc(1 + var(--sp, 0) * 0.2)); transform-origin: 50% 0; will-change: transform; }
+  #globe canvas { height: 200% !important; }
+  .credit { bottom: -6px; }
+}
+@media (prefers-reduced-motion: reduce) { #globe { transform: none !important; } }
