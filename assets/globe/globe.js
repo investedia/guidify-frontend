@@ -40,32 +40,43 @@ async function start() {
 
   const controls = new OrbitControls(camera, renderer.domElement);
   controls.enablePan = false; controls.enableDamping = true;
-  controls.enableZoom = true; controls.minDistance = 2.7; controls.maxDistance = 4.6; controls.zoomSpeed = 0.6;
+  controls.minDistance = 2.4; controls.maxDistance = 4.8;
+  // Phones pinch with OrbitControls; desktop zoom is our own smooth glide (below).
+  controls.enableZoom = touch; controls.zoomSpeed = 0.8;
   controls.autoRotate = !reduce; controls.autoRotateSpeed = 0.35;
   if (touch) {
     // One finger scrolls the page; two fingers turn and zoom the globe.
     controls.touches = { ONE: -1, TWO: THREE.TOUCH.DOLLY_ROTATE };
     renderer.domElement.style.touchAction = 'pan-y';
   }
-  // A plain mouse wheel keeps scrolling the page; trackpad pinch or Ctrl + scroll zooms.
-  stage.addEventListener('wheel', (e) => { if (!e.ctrlKey) e.stopPropagation(); }, { capture: true });
-
+  // Smooth zoom: inputs set a target distance and the camera glides there each frame.
+  let zoomTarget = null;
   function zoomBy(f) {
-    camera.position.setLength(THREE.MathUtils.clamp(camera.position.length() * f, controls.minDistance, controls.maxDistance));
-    controls.update();
+    const from = zoomTarget ?? camera.position.length();
+    zoomTarget = THREE.MathUtils.clamp(from * f, controls.minDistance, controls.maxDistance);
+    if (reduce) { camera.position.setLength(zoomTarget); zoomTarget = null; controls.update(); }
   }
+  // A plain mouse wheel keeps scrolling the page; trackpad pinch or Ctrl + scroll zooms smoothly.
+  stage.addEventListener('wheel', (e) => {
+    if (!e.ctrlKey) { e.stopPropagation(); return; }
+    if (touch) return;
+    e.preventDefault(); e.stopPropagation();
+    zoomBy(Math.exp(THREE.MathUtils.clamp(e.deltaY, -60, 60) * 0.006));
+  }, { capture: true, passive: false });
+  // Double-click zooms in one step (desktop).
+  if (!touch) renderer.domElement.addEventListener('dblclick', (e) => { e.preventDefault(); zoomBy(0.8); });
   if (zoomUI && !touch) {
     zoomUI.hidden = false;
     zoomUI.addEventListener('click', (e) => {
       const b = e.target.closest('button[data-zoom]');
-      if (b) zoomBy(b.dataset.zoom === 'in' ? 0.9 : 1 / 0.9);
+      if (b) zoomBy(b.dataset.zoom === 'in' ? 0.82 : 1 / 0.82);
     });
   }
 
   // Globe body and a faint rim so the edge reads against black.
   scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.995, 64, 48), new THREE.MeshBasicMaterial({ color: 0x0b0b0b })));
   scene.add(new THREE.Mesh(new THREE.SphereGeometry(1.03, 64, 48),
-    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.045, side: THREE.BackSide, depthWrite: false })));
+    new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.06, side: THREE.BackSide, depthWrite: false })));
 
   const [dots, companies] = await Promise.all([
     fetch('assets/globe/land-dots.json').then((r) => r.json()),
@@ -76,15 +87,15 @@ async function start() {
   dots.forEach(([lat, lon], i) => toXYZ(lat, lon, 1).toArray(pos, i * 3));
   const dotGeo = new THREE.BufferGeometry(); dotGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   scene.add(new THREE.Points(dotGeo, new THREE.PointsMaterial({
-    size: 0.016, map: dotTexture(), color: 0xa8a8a8, transparent: true, alphaTest: 0.4, sizeAttenuation: true,
+    size: 0.016, map: dotTexture(), color: 0xbcbcbc, transparent: true, alphaTest: 0.4, sizeAttenuation: true,
   })));
 
   // Badge: dark circle, hairline ring, white logo (or initials when no logo exists).
   async function badge(c) {
     const cv = document.createElement('canvas'); cv.width = cv.height = 256;
     const g = cv.getContext('2d');
-    g.fillStyle = '#121212'; g.beginPath(); g.arc(128, 128, 120, 0, Math.PI * 2); g.fill();
-    g.strokeStyle = '#5a5a5a'; g.lineWidth = 5; g.stroke();
+    g.fillStyle = '#161616'; g.beginPath(); g.arc(128, 128, 120, 0, Math.PI * 2); g.fill();
+    g.strokeStyle = '#6a6a6a'; g.lineWidth = 5; g.stroke();
     let drawn = false;
     if (c.logo) {
       try {
@@ -208,8 +219,14 @@ async function start() {
       const t = Math.min(1, (now - anim.t0) / anim.dur);
       const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
       qTmp.slerpQuaternions(qId, anim.q, e);
-      camera.position.copy(anim.from).applyQuaternion(qTmp).multiplyScalar(anim.dist);
+      camera.position.copy(anim.from).applyQuaternion(qTmp).multiplyScalar(camera.position.length());
       if (t >= 1) anim = null;
+    }
+    if (zoomTarget !== null) {
+      const d = camera.position.length();
+      const nd = d + (zoomTarget - d) * 0.16;
+      if (Math.abs(zoomTarget - nd) < 0.002) { camera.position.setLength(zoomTarget); zoomTarget = null; }
+      else camera.position.setLength(nd);
     }
     controls.update();
     camDir.copy(camera.position).normalize();
