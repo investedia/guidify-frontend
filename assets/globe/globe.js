@@ -51,8 +51,22 @@ const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 100);
 camera.position.copy(toXYZ(30, -40, 3.7));
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableZoom = false; controls.enablePan = false; controls.enableDamping = true;
+controls.enableZoom = true; controls.minDistance = 2.7; controls.maxDistance = 4.6; controls.zoomSpeed = 0.6; controls.enablePan = false; controls.enableDamping = true;
 controls.autoRotate = !reduce; controls.autoRotateSpeed = 0.35;
+
+// Zoom: trackpad pinch or Ctrl + scroll zooms; a plain mouse wheel keeps scrolling the page.
+stage.addEventListener('wheel', (e) => { if (!e.ctrlKey) e.stopPropagation(); }, { capture: true });
+// + / − buttons for visitors without a trackpad.
+function zoomBy(f) {
+  const d = THREE.MathUtils.clamp(camera.position.length() * f, controls.minDistance, controls.maxDistance);
+  camera.position.setLength(d); controls.update();
+}
+const zoomUI = document.createElement('div');
+zoomUI.className = 'globe-zoom';
+zoomUI.innerHTML = '<button type="button" aria-label="Zoom in">+</button><button type="button" aria-label="Zoom out">−</button>';
+zoomUI.children[0].addEventListener('click', () => zoomBy(0.9));
+zoomUI.children[1].addEventListener('click', () => zoomBy(1 / 0.9));
+stage.appendChild(zoomUI);
 
 // Globe body and a faint rim so the edge reads against black.
 scene.add(new THREE.Mesh(new THREE.SphereGeometry(0.995, 64, 48), new THREE.MeshBasicMaterial({ color: 0x0b0b0b })));
