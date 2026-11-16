@@ -9,6 +9,7 @@ const tip = document.getElementById('tip');
 const zoomUI = document.getElementById('globe-zoom');
 const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const touch = matchMedia('(pointer: coarse)').matches;
+const FOCUS_OFFSET = { x: -0.85, y: -0.42 }; // radians: right of centre, then above it (desktop only)
 
 function toXYZ(lat, lon, r) {
   const phi = (90 - lat) * Math.PI / 180, th = (lon + 180) * Math.PI / 180;
@@ -141,6 +142,12 @@ async function start() {
     const dist = camera.position.length();
     const from = camera.position.clone().normalize();
     const to = m.pos.clone().normalize();
+    // Desktop: stop with the company to the right of centre, next to its card, not behind the headline.
+    if (!matchMedia('(max-width: 900px)').matches) {
+      to.applyAxisAngle(new THREE.Vector3(0, 1, 0), FOCUS_OFFSET.x);
+      const side = new THREE.Vector3().crossVectors(to, new THREE.Vector3(0, 1, 0)).normalize();
+      if (side.lengthSq() > 0) to.applyAxisAngle(side, FOCUS_OFFSET.y);
+    }
     if (reduce) { camera.position.copy(to.multiplyScalar(dist)); controls.update(); return; }
     anim = { from, q: new THREE.Quaternion().setFromUnitVectors(from, to), dist, t0: performance.now(), dur: 900 };
   }

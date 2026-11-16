@@ -24,6 +24,9 @@ let sector = 'All';
 let matches = [];
 let active = -1;
 let opener = null;
+let lastKeyboard = false;
+addEventListener('keydown', () => { lastKeyboard = true; }, true);
+addEventListener('pointerdown', () => { lastKeyboard = false; }, true);
 
 const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -84,7 +87,9 @@ function openPanel(c, { peek = false } = {}) {
   panel.classList.toggle('is-peek', phone.matches && peek);
   panel.hidden = false;
   scrim.hidden = false;
-  panel.querySelector('.panel-close').focus({ preventScroll: true });
+  // Keyboard users land on the close button; after a tap or click, focus the dialog itself (no focus ring).
+  if (lastKeyboard) panel.querySelector('.panel-close').focus({ preventScroll: true });
+  else panel.focus({ preventScroll: true });
 }
 function closePanel() {
   if (panel.hidden) return;
@@ -150,7 +155,9 @@ function renderSuggest() {
   if (!q) { closeSuggest(); return; }
   const p = pool();
   const starts = p.filter((c) => norm(c.name).startsWith(q));
-  const rest = p.filter((c) => !starts.includes(c) && (norm(c.name).includes(q) || norm(c.city).includes(q) || norm(c.country).includes(q)));
+  // Then names, cities and countries that have a word starting with the query ("pay" → Paystack, "sao" → São Paulo).
+  const wordStart = (text) => norm(text).split(/[^a-z0-9]+/).some((w) => w.startsWith(q)) || norm(text).startsWith(q);
+  const rest = p.filter((c) => !starts.includes(c) && (wordStart(c.name) || wordStart(c.city) || wordStart(c.country)));
   matches = [...starts, ...rest].slice(0, 6);
   active = matches.length ? 0 : -1;
   if (!matches.length) {
