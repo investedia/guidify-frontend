@@ -1,0 +1,13 @@
+# Guidify
+
+> Guidify empowers entrepreneurs worldwide with digital solutions. Founded in 2024 in Belgium, Guidify builds independent digital products.
+
+## Products
+- [Investedia](https://investedia.com): financial news, markets and investment intelligence, with education for people learning to invest. Live.
+- [Droplates](https://droplates.com): website templates and creation tools to launch a site faster. In development.
+
+## Company
+- [Homepage](https://guidify.eu/)
+- [Contact](mailto:contact@guidify.eu)
+- [Privacy](https://guidify.eu/privacy.html)
+- [Legal notice](https://guidify.eu/legal.html)
