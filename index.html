@@ -31,7 +31,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap">
   <link rel="stylesheet" href="styles.css">
-  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js">
   <script type="importmap">
   { "imports": {
@@ -64,7 +63,7 @@
       <a href="#top" class="wordmark" aria-label="Guidify home"><img class="logo-mark" src="assets/guidify-logo.png" alt="" width="26" height="26"><span>Guidify</span></a>
       <nav class="site-nav" id="site-nav" aria-label="Primary">
         <a href="#products">Products</a>
-        <a href="#story">Company</a>
+        <a href="#story">About</a>
         <a href="#contact" class="nav-cta">Contact</a>
       </nav>
       <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Open menu">
@@ -75,40 +74,13 @@
 
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-globe">
-        <div id="globe" role="img" aria-label="Interactive globe showing where widely used companies were founded. The search and the company list below give the same information.">
-          <img class="globe-still" src="assets/globe/globe-still.webp" alt="" width="1100" height="1100" fetchpriority="high">
-        </div>
-      </div>
+      <canvas id="gfield" aria-hidden="true"></canvas>
       <div class="container hero-wrap">
         <div class="hero-left">
-          <p class="kicker">From ideas to impact</p>
-          <h1 id="hero-title">Every big product began somewhere.</h1>
-          <p class="lead">Explore the stories behind products people use every day: the problem, the solution, and where it started.</p>
-          <div class="finder">
-            <div class="search" id="search">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-              <label class="visually-hidden" for="search-input">Search companies</label>
-              <input id="search-input" type="search" placeholder="Search companies" autocomplete="off" spellcheck="false"
-                role="combobox" aria-expanded="false" aria-controls="search-list" aria-autocomplete="list">
-              <kbd aria-hidden="true">/</kbd>
-              <ul class="suggest" id="search-list" role="listbox" aria-label="Matching companies" hidden></ul>
-            </div>
-            <div class="chips" role="group" aria-label="Filter by sector" id="sector-chips"></div>
-            <p class="visually-hidden" aria-live="polite" id="finder-status"></p>
-          </div>
-          <p class="hint-mobile">Search, or tap a logo to read how a company started.</p>
+          <h1 id="hero-title">Empowering entrepreneurs worldwide <span>with digital solutions.</span></h1>
+          <p class="lead">We build the digital solutions entrepreneurs need to start, fund and grow, wherever they are.</p>
+          <div class="hero-actions"><a class="btn btn-primary" href="#products">Explore our solutions</a><a class="btn btn-ghost" href="#story">About Guidify</a></div>
         </div>
-        <aside class="hero-card" id="hero-card" aria-live="polite">
-          <div class="card card-hint">
-            <p>Search or tap a logo to read how a company started.</p>
-            <small id="company-count">Companies, the problems they solved and where they began.</small>
-          </div>
-        </aside>
-      </div>
-      <div class="globe-zoom" id="globe-zoom" hidden>
-        <button type="button" data-zoom="in" aria-label="Zoom in" title="Zoom in (or double-click, pinch, Ctrl + scroll)">+</button>
-        <button type="button" data-zoom="out" aria-label="Zoom out" title="Zoom out (or pinch, Ctrl + scroll)">−</button>
       </div>
     </section>
 
@@ -116,7 +88,7 @@
       <div class="container mission reveal">
         <p class="kicker">From ideas to impact</p>
         <h2 id="mission-title">The right tools change what’s possible.</h2>
-        <p>Every company on the globe started by solving a problem with the knowledge and tools it had. Guidify builds independent products that put better knowledge and tools within reach of people who invest, trade, build and learn.</p>
+        <p>Every big company started by solving a problem with the knowledge and tools it had. Guidify builds independent products that put better knowledge and tools within reach of people who invest, trade, build and learn.</p>
         <ul class="audience" aria-label="Who Guidify builds for">
           <li>Investors</li><li>Traders</li><li>Entrepreneurs</li><li>Creators</li><li>Learners</li>
         </ul>
@@ -168,20 +140,6 @@
       </div>
     </section>
 
-    <section class="section section-tight" id="companies" aria-labelledby="companies-title">
-      <div class="container">
-        <details class="company-list" id="company-list">
-          <summary><span id="companies-title">Browse all companies as a list</span><span class="count" id="list-count"></span></summary>
-          <table>
-            <caption class="visually-hidden">Companies on the globe, with founding city, year and sector</caption>
-            <thead><tr><th scope="col">Company</th><th scope="col">Founding city</th><th scope="col">Founded</th><th scope="col">Sector</th></tr></thead>
-            <tbody id="list-body"></tbody>
-          </table>
-        </details>
-        <p class="disclaimer">Featured companies are not affiliated with or endorsed by Guidify. Logos belong to their owners.</p>
-      </div>
-    </section>
-
     <section class="cta" id="contact" aria-labelledby="contact-title">
       <div class="container reveal">
         <h2 id="contact-title">Let’s connect.</h2>
@@ -191,9 +149,6 @@
     </section>
   </main>
 
-  <div class="tip" id="tip" role="tooltip" hidden></div>
-  <div class="scrim" id="scrim" hidden></div>
-  <aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panel-title" tabindex="-1" hidden></aside>
 
   <footer class="site-footer">
     <div class="container footer-grid">
@@ -233,7 +188,6 @@
   </footer>
 
   <script src="script.js" defer></script>
-  <script type="module" src="assets/globe/companies-ui.js"></script>
-  <script type="module" src="assets/globe/globe.js"></script>
+  <script src="assets/gfield.js" defer></script>
 </body>
 </html>
