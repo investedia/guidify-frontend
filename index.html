@@ -169,13 +169,6 @@ section{padding:128px 0}
 .bar span{margin:0 auto;font-size:11px;color:#777;background:#0c0c0c;border-radius:6px;padding:3px 40px}
 .frame img{width:100%;aspect-ratio:16/10;object-fit:cover;object-position:top}
 
-/* explore teaser */
-.explore{position:relative;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--bg2);display:grid;grid-template-columns:1fr 1fr;min-height:440px}
-.explore .txt{padding:56px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:1}
-.explore p{color:var(--fg2);font-size:17px;margin:18px 0 28px;max-width:26em}
-.explore .g{position:relative}
-.explore .g img{position:absolute;width:130%;max-width:none;left:-5%;top:-10%;opacity:.85}
-.explore::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,var(--bg2) 40%,transparent 70%);pointer-events:none}
 
 /* audience */
 .aud{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:48px}
@@ -224,7 +217,7 @@ footer .base{grid-column:1/-1;display:flex;justify-content:space-between;padding
  .hero .lead{margin-left:auto;margin-right:auto}.ctas{justify-content:center}
  .show{height:auto;aspect-ratio:16/12;margin:24px 0 8px;text-align:left}
  .w1{top:16%;width:86%}.w2{width:72%;right:0}.c1{left:0;bottom:2%}.c2{right:0;top:-4%}
- .strip .wrap,.about,.pillars,.prod,.explore,.tl{grid-template-columns:1fr}
+ .strip .wrap,.about,.pillars,.prod,.tl{grid-template-columns:1fr}
  .strip .s,.strip a{border-left:0;border-top:1px solid var(--line);padding-left:0;padding-right:0}.strip .s:first-child{border-top:0}
  .about{gap:20px}
  .pillars div{border-left:0;border-top:1px solid var(--line)}.pillars div:first-child{border-top:0}
@@ -232,10 +225,6 @@ footer .base{grid-column:1/-1;display:flex;justify-content:space-between;padding
  .pillars .ai{margin:0 0 14px}
  .prod{gap:32px}.prod.rev .txt{order:0}
  .frame,.prod.rev .frame{transform:none}
- .explore .txt{padding:36px 24px 0}.explore .g{height:auto;overflow:hidden;margin-top:8px}
- .explore .g img{width:120%;left:-10%;top:0}
- .explore::after{display:none}
- .explore .g img{position:relative;width:110%;left:-5%;top:0}
  .aud{grid-template-columns:1fr 1fr}
  .tl{border-top:0;border-left:1px solid var(--line2);margin-left:4px}
  .tl div{padding:0 0 28px 24px}.tl div::before{top:6px;left:-4px}
@@ -255,7 +244,7 @@ footer .base{grid-column:1/-1;display:flex;justify-content:space-between;padding
 <body>
 <nav><div class="wrap">
  <a class="brand" href="/"><img src="assets/guidify-g.png" alt="">Guidify</a>
- <div class="nl"><a href="#about">About</a><a href="#products">Products</a><a href="#explore">Stories</a><a href="#story">Company</a></div>
+ <div class="nl"><a href="#about">About</a><a href="#products">Products</a><a href="#story">Company</a></div>
  <a class="btn btn-w" href="mailto:contact@guidify.eu">Contact</a>
 </div></nav>
 
@@ -327,18 +316,6 @@ footer .base{grid-column:1/-1;display:flex;justify-content:space-between;padding
  </article>
 </div></section>
 
-<section id="explore" style="padding-top:0"><div class="wrap">
- <div class="explore rv">
-  <div class="txt">
-   <div class="eyebrow">Explore</div>
-   <h2>Every big product<br><span>began somewhere.</span></h2>
-   <p>Spin the globe and read how 75 of the world's best-known companies got started, from a Seattle boathouse to a Munich engine works.</p>
-   <div><a class="btn btn-w" href="globe.html">Open the globe <svg class="arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a></div>
-  </div>
-  <div class="g" aria-hidden="true"><img src="assets/globe/globe-still.webp" alt=""></div>
- </div>
-</div></section>
-
 <section style="padding-top:0"><div class="wrap">
  <div class="rv"><div class="eyebrow">Who it's for</div><h2>Made for people<br><span>who build and invest.</span></h2></div>
  <div class="aud rv">
@@ -366,7 +343,7 @@ footer .base{grid-column:1/-1;display:flex;justify-content:space-between;padding
 
 <footer><div class="wrap">
  <div><a class="brand" href="/"><img src="assets/guidify-g.png" alt="">Guidify</a><p style="margin-top:14px;max-width:24em">Independent digital products for investors, traders, entrepreneurs, creators and learners.</p></div>
- <div><h5>Products</h5><ul><li><a href="https://investedia.com" target="_blank" rel="noopener">Investedia</a></li><li><a href="https://droplates.com" target="_blank" rel="noopener">Droplates</a></li><li><a href="globe.html">Company globe</a></li></ul></div>
+ <div><h5>Products</h5><ul><li><a href="https://investedia.com" target="_blank" rel="noopener">Investedia</a></li><li><a href="https://droplates.com" target="_blank" rel="noopener">Droplates</a></li></ul></div>
  <div><h5>Follow</h5><ul><li><a href="https://www.linkedin.com/company/guidify-eu/" target="_blank" rel="noopener">LinkedIn</a></li><li><a href="https://x.com/guidifyinc" target="_blank" rel="noopener">X</a></li><li><a href="https://www.instagram.com/guidify/" target="_blank" rel="noopener">Instagram</a></li><li><a href="https://www.tiktok.com/@guidify" target="_blank" rel="noopener">TikTok</a></li></ul></div>
  <div><h5>Company</h5><ul><li><a href="mailto:contact@guidify.eu">Contact</a></li><li><a href="privacy.html">Privacy</a></li><li><a href="legal.html">Legal</a></li></ul></div>
  <div class="base"><span>© 2026 Guidify</span><span>Investedia and Droplates are products of Guidify.</span></div>

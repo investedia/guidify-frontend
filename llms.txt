@@ -8,7 +8,6 @@
 
 ## Company
 - [Homepage](https://guidify.eu/)
-- [Company globe](https://guidify.eu/globe.html): how 75 well-known companies got started, on an interactive globe
 - [Contact](mailto:contact@guidify.eu)
 - [Privacy](https://guidify.eu/privacy.html)
 - [Legal notice](https://guidify.eu/legal.html)
