@@ -109,6 +109,7 @@ nav .btn{margin-left:auto;height:36px}
 h1{font-size:clamp(42px,5.2vw,70px);line-height:1;letter-spacing:-.05em;font-weight:500}
 h1 .ln{display:block;white-space:pre;min-height:1em;color:var(--fg)}
 h1 .ln+.ln{color:var(--fg3)}
+@media (max-width:400px){h1.scr{font-size:clamp(32px,10.4vw,42px)}}
 .dud{color:#8f8f8f;opacity:.9}
 .nl a span{white-space:pre}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
@@ -361,7 +362,7 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.targ
 /* Text scramble: headline decodes out of glyphs and cycles; nav links decode on hover. */
 (()=>{
 const G='#%&*+=-_/\\<>[]{}?!$@0123456789';
-const P=[["Digital solutions","for entrepreneurs."],["Investedia:","clear markets."],["Droplates:","sites, ready to go."],["Products,","not client work."]];
+const P=[["Digital solutions","for entrepreneurs."],["Follow the markets","with Investedia."],["Build your site","with Droplates."],["Learn. Invest.","Build."]];
 const lines=[...document.querySelectorAll('h1.scr .ln')];
 if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
 const R=n=>Math.random()*n,glyph=()=>G[Math.floor(R(G.length))];
